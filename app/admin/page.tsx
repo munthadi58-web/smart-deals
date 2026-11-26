@@ -1,13 +1,14 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "../../lib/supabase-server";
-import { createStore, toggleStore } from "./actions";
+import { createStore } from "./actions";
+import StoreActions from "./StoreActions";
 
 export const dynamic = "force-dynamic";
 
 type Store = { id: string; name: string; website_url: string | null; source_type: string; is_active: boolean; created_at: string };
 const fieldStyle: React.CSSProperties = { width:"100%",padding:"12px 13px",border:"1px solid #dfe7e1",borderRadius:9,background:"#fff",color:"#17233b",outline:"none" };
 
-export default async function AdminPage({ searchParams }: { searchParams: Promise<{ saved?: string; updated?: string; duplicate?: string }> }) {
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ saved?: string; updated?: string; duplicate?: string; deleted?: string; deleteBlocked?: string; error?: string }> }) {
   const supabase = await createSupabaseServerClient();
   const { data: claimsData } = await supabase.auth.getClaims();
   if (!claimsData?.claims?.sub) redirect("/login");
@@ -48,7 +49,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             <td style={{padding:12}}><strong>{store.name}</strong>{store.website_url&&<a href={store.website_url} target="_blank" rel="noreferrer" style={{display:"block",color:"#087b52",fontSize:11,marginTop:4}}>{store.website_url}</a>}</td>
             <td style={{padding:12,color:"#68748a"}}>{sourceLabels[store.source_type]??store.source_type}</td>
             <td style={{padding:12}}><span style={{padding:"5px 9px",borderRadius:20,background:store.is_active?"#e5f7ed":"#f1f2f4",color:store.is_active?"#087b52":"#747b86"}}>{store.is_active?"نشط":"متوقف"}</span></td>
-            <td style={{padding:12}}><form action={toggleStore}><input type="hidden" name="id" value={store.id}/><input type="hidden" name="next_active" value={String(!store.is_active)}/><button style={{padding:"8px 11px",border:"1px solid #dce5df",borderRadius:8,background:"#fff",color:"#344256"}}>{store.is_active?"إيقاف":"تفعيل"}</button></form></td>
+            <td style={{padding:12}}><StoreActions id={store.id} isActive={store.is_active}/></td>
           </tr>)}</tbody>
         </table>}
       </section>
