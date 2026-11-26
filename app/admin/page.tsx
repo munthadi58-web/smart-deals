@@ -32,6 +32,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       <nav style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:26}}>{["المتاجر","العروض · قريباً","الكوبونات · قريباً"].map((label,index)=><span key={label} style={{padding:"10px 16px",borderRadius:10,background:index===0?"#087b52":"#e8eeeb",color:index===0?"#fff":"#617067",fontWeight:700,fontSize:13}}>{label}</span>)}</nav>
       {params.saved&&<p style={{background:"#e5f7ed",color:"#087b52",padding:12,borderRadius:10}}>تمت إضافة المتجر بنجاح.</p>}
       {params.updated&&<p style={{background:"#e5f7ed",color:"#087b52",padding:12,borderRadius:10}}>تم تحديث حالة المتجر.</p>}\n      {params.duplicate&&<p style={{background:"#fff4df",color:"#8a5a00",padding:12,borderRadius:10}}>هذا المتجر مسجل مسبقاً، لم نضف نسخة مكررة.</p>}
+      {params.deleted&&<p style={{background:"#e5f7ed",color:"#087b52",padding:12,borderRadius:10}}>تم حذف المتجر بنجاح.</p>}
+      {params.deleteBlocked&&<p style={{background:"#fff4df",color:"#8a5a00",padding:12,borderRadius:10}}>لا يمكن حذف هذا المتجر لأنه مرتبط بعروض أو كوبونات. يمكنك إيقافه بدلاً من الحذف.</p>}
+      {params.error&&<p style={{background:"#fff0f0",color:"#b42318",padding:12,borderRadius:10}}>{params.error}</p>}
       <section style={{background:"#fff",padding:22,borderRadius:18,marginTop:18,boxShadow:"0 8px 30px #102b1a08"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap"}}><div><h2 style={{margin:"0 0 6px",fontSize:21}}>إضافة متجر جديد</h2><p style={{margin:0,color:"#778398",fontSize:13}}>أضف المتاجر الرسمية أو مصادر العروض المصرح بها فقط.</p></div><strong style={{color:"#087b52"}}>{storeRows.length} متجر</strong></div>
         <form action={createStore} style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:12,marginTop:20}}>
