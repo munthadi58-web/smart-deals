@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createSupabaseBrowserClient } from "../lib/supabase-browser";
-import { Search, MapPin, ChevronDown, Tag, ShoppingBag, Smartphone, Home, Shirt, Plane, Sparkles, Clock3, ArrowUpLeft, Menu, Heart, SlidersHorizontal, Globe2, BadgePercent } from "lucide-react";
+import { Search, MapPin, ChevronDown, Tag, ShoppingBag, Smartphone, Home, Shirt, Plane, Sparkles, Clock3, ArrowUpLeft, Menu, Heart, SlidersHorizontal, Globe2, BadgePercent, CarFront, Dumbbell } from "lucide-react";
 
 type Deal = {
   id: number | string; title: string; store: string; category: string; price: number;
@@ -22,13 +22,16 @@ const deals: Deal[] = [
 const categories = [
   { name: "الكل", icon: Sparkles }, { name: "مواد غذائية", icon: ShoppingBag },
   { name: "إلكترونيات", icon: Smartphone }, { name: "المنزل والمطبخ", icon: Home },
-  { name: "الأزياء", icon: Shirt }, { name: "السفر", icon: Plane }, { name: "خدمات واشتراكات", icon: Tag },
+  { name: "الأزياء", icon: Shirt }, { name: "الجمال والعناية", icon: Sparkles },
+  { name: "السفر", icon: Plane }, { name: "خدمات واشتراكات", icon: Tag },
+  { name: "السيارات", icon: CarFront }, { name: "رياضة وترفيه", icon: Dumbbell }, { name: "أخرى", icon: Tag },
 ];
 
 export default function HomePage() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("الكل");
   const [city, setCity] = useState("كل السعودية");
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
   const [saved, setSaved] = useState<(number | string)[]>([]);
   const [visibleDeals, setVisibleDeals] = useState<Deal[]>(deals);
   const [isLive, setIsLive] = useState(false);
@@ -51,6 +54,11 @@ export default function HomePage() {
         setIsLive(true);
         return;
       }
+
+      const { data: cityRows } = await supabase
+        .from("cities").select("name_ar").eq("country_id", country.id)
+        .eq("is_active", true).order("name_ar");
+      if (active) setAvailableCities((cityRows ?? []).map((row: { name_ar: string }) => row.name_ar));
 
       const now = new Date().toISOString();
       const { data, error } = await supabase
@@ -166,7 +174,7 @@ export default function HomePage() {
 
       <section className="dealsSection" id="deals">
         <div className="container section">
-          <div className="sectionHead"><div><span className="kicker">اختيارات تستحق نظرة</span><h2>أحدث العروض</h2><p className="sectionDesc">تصفح العروض حسب التصنيف والمدينة.</p></div><div className="filters"><select value={city} onChange={e=>setCity(e.target.value)} aria-label="اختر المدينة"><option>كل السعودية</option><option>الرياض</option><option>جدة</option><option>الدمام</option></select><button className="filterButton"><SlidersHorizontal size={16}/> تصفية</button></div></div>
+          <div className="sectionHead"><div><span className="kicker">اختيارات تستحق نظرة</span><h2>أحدث العروض</h2><p className="sectionDesc">تصفح العروض حسب التصنيف والمدينة.</p></div><div className="filters"><select value={city} onChange={e=>setCity(e.target.value)} aria-label="اختر المدينة"><option>كل السعودية</option>{availableCities.map(name => <option key={name}>{name}</option>)}</select><button className="filterButton"><SlidersHorizontal size={16}/> تصفية</button></div></div>
           <div className="activeFilters">{category!=="الكل"&&<button onClick={()=>setCategory("الكل")}>{category} ×</button>}{query&&<button onClick={()=>setQuery("")}>بحث: {query} ×</button>}</div>
           <div className="dealGrid">
             {filtered.map(d=><article className="dealCard" key={d.id}>
