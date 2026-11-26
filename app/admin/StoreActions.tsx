@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { deleteStore, toggleStore } from "./actions";
 
 export default function StoreActions({ id, isActive }: { id: string; isActive: boolean }) {
-  const router = useRouter();
   const [deleting, setDeleting] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState("");
 
@@ -22,7 +20,7 @@ export default function StoreActions({ id, isActive }: { id: string; isActive: b
         setDeleteMessage(result.message ?? "تعذر حذف المتجر.");
         return;
       }
-      router.refresh();
+      window.location.assign("/admin?deleted=1");
     } catch {
       setDeleteMessage("حدث خطأ أثناء الحذف. حدّث الصفحة للتحقق من حالة المتجر.");
     } finally {
