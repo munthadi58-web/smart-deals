@@ -60,18 +60,20 @@ export async function toggleStore(formData: FormData) {
   redirect("/admin?updated=1");
 }
 
-export async function deleteStore(formData: FormData) {
+export async function deleteStore(formData: FormData): Promise<{ ok: boolean; message?: string }> {
   const id = String(formData.get("id") ?? "");
-  if (!/^[0-9a-f-]{36}$/i.test(id)) redirect("/admin?error=" + encodeURIComponent("معرّف المتجر غير صالح."));
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return { ok: false, message: "معرّف المتجر غير صالح." };
   const supabase = await getAdminClient();
   const [{ count: offersCount, error: offersError }, { count: couponsCount, error: couponsError }] = await Promise.all([
     supabase.from("offers").select("id", { count: "exact", head: true }).eq("store_id", id),
     supabase.from("coupons").select("id", { count: "exact", head: true }).eq("store_id", id),
   ]);
-  if (offersError || couponsError) redirect("/admin?error=" + encodeURIComponent("تعذر التحقق من ارتباطات المتجر قبل الحذف."));
-  if ((offersCount ?? 0) > 0 || (couponsCount ?? 0) > 0) redirect("/admin?deleteBlocked=1");
+  if (offersError || couponsError) return { ok: false, message: "تعذر التحقق من ارتباطات المتجر قبل الحذف." };
+  if ((offersCount ?? 0) > 0 || (couponsCount ?? 0) > 0) {
+    return { ok: false, message: "لا يمكن حذف هذا المتجر لأنه مرتبط بعروض أو كوبونات. يمكنك إيقافه بدلاً من الحذف." };
+  }
   const { data, error } = await supabase.from("stores").delete().eq("id", id).select("id").maybeSingle();
-  if (error || !data) redirect("/admin?error=" + encodeURIComponent("تعذر حذف المتجر: " + (error?.message ?? "لم يتم العثور على المتجر.")));
+  if (error || !data) return { ok: false, message: "تعذر حذف المتجر: " + (error?.message ?? "لم يتم العثور على المتجر.") };
   revalidatePath("/admin");
-  redirect("/admin?deleted=1");
+  return { ok: true };
 }
