@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 import { Search, MapPin, ChevronDown, Tag, ShoppingBag, Smartphone, Home, Shirt, Plane, Sparkles, Clock3, ArrowUpLeft, Menu, Heart, SlidersHorizontal, Globe2, BadgePercent } from "lucide-react";
 
 type Deal = {
-  id: number; title: string; store: string; category: string; price: number;
+  id: number | string; title: string; store: string; category: string; price: number;
   oldPrice: number; discount: number; city: string; ends: string; icon: string;
   accent: string; verified: boolean;
 };
@@ -28,12 +29,70 @@ export default function HomePage() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("الكل");
   const [city, setCity] = useState("كل السعودية");
-  const [saved, setSaved] = useState<number[]>([]);
-  const filtered = useMemo(() => deals.filter(d =>
+  const [saved, setSaved] = useState<(number | string)[]>([]);
+  const [visibleDeals, setVisibleDeals] = useState<Deal[]>(deals);
+  const [isLive, setIsLive] = useState(false);
+
+  useEffect(() => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+    if (!url || !key) return;
+
+    const supabase = createClient(url, key);
+    let active = true;
+
+    const loadPublishedOffers = async () => {
+      const { data: country, error: countryError } = await supabase
+        .from("countries").select("id").eq("code", "SA").maybeSingle();
+
+      if (!active) return;
+      if (countryError || !country) {
+        setVisibleDeals([]);
+        setIsLive(true);
+        return;
+      }
+
+      const now = new Date().toISOString();
+      const { data, error } = await supabase
+        .from("offers")
+        .select("id,title,current_price,old_price,discount_percent,ends_at,is_verified,city:cities(name_ar),store:stores(name),category:categories(name_ar)")
+        .eq("country_id", country.id)
+        .eq("status", "published")
+        .or(`ends_at.is.null,ends_at.gt.${now}`)
+        .order("created_at", { ascending: false });
+
+      if (!active) return;
+      setIsLive(true);
+      if (error || !data) {
+        setVisibleDeals([]);
+        return;
+      }
+
+      const accents = ["lavender", "peach", "mint", "rose", "blue", "sand"];
+      setVisibleDeals(data.map((offer: any, index: number) => ({
+        id: offer.id,
+        title: offer.title,
+        store: offer.store?.name ?? "متجر",
+        category: offer.category?.name_ar ?? "أخرى",
+        price: Number(offer.current_price ?? 0),
+        oldPrice: Number(offer.old_price ?? offer.current_price ?? 0),
+        discount: Number(offer.discount_percent ?? 0),
+        city: offer.city?.name_ar ?? "كل السعودية",
+        ends: offer.ends_at ? new Date(offer.ends_at).toLocaleDateString("ar-SA") : "مستمر",
+        icon: "🏷️",
+        accent: accents[index % accents.length],
+        verified: Boolean(offer.is_verified),
+      })));
+    };
+
+    void loadPublishedOffers();
+    return () => { active = false; };
+  }, []);
+  const filtered = useMemo(() => visibleDeals.filter(d =>
     (category === "الكل" || d.category === category) &&
     (city === "كل السعودية" || d.city === city || d.city === "كل السعودية") &&
     `${d.title} ${d.store} ${d.category}`.includes(query.trim())
-  ), [query, category, city]);
+  ), [visibleDeals, query, category, city]);
 
   return (
     <main>
@@ -96,11 +155,11 @@ export default function HomePage() {
           <div className="dealGrid">
             {filtered.map(d=><article className="dealCard" key={d.id}>
               <div className={`dealImage ${d.accent}`}><span className="discountLabel">خصم {d.discount}%</span><button className={`saveButton ${saved.includes(d.id)?"saved":""}`} onClick={()=>setSaved(s=>s.includes(d.id)?s.filter(x=>x!==d.id):[...s,d.id])} aria-label="حفظ العرض"><Heart size={18} fill={saved.includes(d.id)?"currentColor":"none"}/></button><span className="productEmoji">{d.icon}</span></div>
-              <div className="dealInfo"><div className="storeName">{d.store}<span className="unverified">بيانات تجريبية</span></div><h3>{d.title}</h3><div className="priceRow"><b>{d.price.toFixed(2)} <small>ر.س</small></b><del>{d.oldPrice.toFixed(2)} ر.س</del></div><div className="dealFoot"><span><MapPin size={13}/>{d.city}</span><span><Clock3 size={13}/>{d.ends}</span></div><button className="dealButton" onClick={()=>alert("هذا عرض تجريبي للتصميم فقط. لن يتم تحويلك إلى متجر قبل ربط مصدر حقيقي.")}>تفاصيل العرض <ArrowUpLeft size={16}/></button></div>
+              <div className="dealInfo"><div className="storeName">{d.store}<span className="unverified">{isLive ? (d.verified ? "تم التحقق" : "عرض منشور") : "بيانات تجريبية"}</span></div><h3>{d.title}</h3><div className="priceRow"><b>{d.price.toFixed(2)} <small>ر.س</small></b><del>{d.oldPrice.toFixed(2)} ر.س</del></div><div className="dealFoot"><span><MapPin size={13}/>{d.city}</span><span><Clock3 size={13}/>{d.ends}</span></div><button className="dealButton" onClick={()=>alert("هذا عرض تجريبي للتصميم فقط. لن يتم تحويلك إلى متجر قبل ربط مصدر حقيقي.")}>تفاصيل العرض <ArrowUpLeft size={16}/></button></div>
             </article>)}
           </div>
           {filtered.length===0&&<div className="empty">لا توجد نتائج مطابقة. جرّب تغيير كلمة البحث أو التصنيف.</div>}
-          <p className="demoNotice">تنبيه: البطاقات المعروضة بيانات تجريبية لتوضيح التصميم فقط، وليست عروضاً حقيقية أو أسعاراً حالية.</p>
+          {!isLive ? <p className="demoNotice">تنبيه: البطاقات المعروضة بيانات تجريبية لتوضيح التصميم فقط، وليست عروضاً حقيقية أو أسعاراً حالية.</p> : <p className="demoNotice">تعرض هذه الصفحة العروض المنشورة في قاعدة البيانات فقط. تحقق من السعر ومصدر العرض قبل الشراء.</p>}
         </div>
       </section>
 
