@@ -120,11 +120,11 @@ export default function HomePage() {
             <p>اكتشف التخفيضات، قارن الأسعار، واستخدم أكواد الخصم — من متاجر متعددة وبكل سهولة.</p>
             <div className="searchBox">
               <Search size={21}/>
-              <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="ابحث عن منتج، متجر، أو كود خصم..." aria-label="ابحث عن العروض"/>
-              <button onClick={()=>document.getElementById("deals")?.scrollIntoView({behavior:"smooth"})}>ابحث الآن <ArrowUpLeft size={17}/></button>
+              <input id="deal-search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="ابحث عن منتج، متجر، أو كود خصم..." aria-label="ابحث عن العروض"/>
+              <button onClick={()=>{if(query.trim())document.getElementById("search-results")?.scrollIntoView({behavior:"smooth",block:"nearest"});else document.getElementById("deal-search")?.focus();}}>ابحث الآن <ArrowUpLeft size={17}/></button>
             </div>
             {query.trim() && (
-              <div className="searchResults" role="region" aria-live="polite" aria-label="نتائج البحث">
+              <div id="search-results" className="searchResults" role="region" aria-live="polite" aria-label="نتائج البحث">
                 <div className="searchResultsHead">
                   <b>نتائج البحث</b>
                   <span>{filtered.length} نتيجة</span>
