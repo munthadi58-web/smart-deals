@@ -123,6 +123,22 @@ export default function HomePage() {
               <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="ابحث عن منتج، متجر، أو كود خصم..." aria-label="ابحث عن العروض"/>
               <button onClick={()=>document.getElementById("deals")?.scrollIntoView({behavior:"smooth"})}>ابحث الآن <ArrowUpLeft size={17}/></button>
             </div>
+            {query.trim() && (
+              <div className="searchResults" role="region" aria-live="polite" aria-label="نتائج البحث">
+                <div className="searchResultsHead">
+                  <b>نتائج البحث</b>
+                  <span>{filtered.length} نتيجة</span>
+                </div>
+                {filtered.length > 0 ? filtered.slice(0, 5).map(d => (
+                  <button className="searchResultItem" key={d.id} onClick={() => document.getElementById("deals")?.scrollIntoView({ behavior: "smooth" })}>
+                    <span className="searchResultIcon">{d.icon}</span>
+                    <span className="searchResultText"><b>{d.title}</b><small>{d.store} · {d.city}</small></span>
+                    <strong>{d.price.toFixed(2)} ر.س</strong>
+                  </button>
+                )) : <p className="searchNoResults">لا توجد نتائج مطابقة. جرّب كلمة أخرى.</p>}
+                {filtered.length > 5 && <button className="searchAllResults" onClick={() => document.getElementById("deals")?.scrollIntoView({ behavior: "smooth" })}>عرض كل النتائج ({filtered.length})</button>}
+              </div>
+            )}
             <div className="heroMeta"><span><BadgePercent size={15}/> عروض من مصادر متعددة</span><span><Clock3 size={15}/> تواريخ صلاحية واضحة</span><span><Heart size={15}/> احفظ ما يعجبك</span></div>
           </div>
           <div className="heroArt">
