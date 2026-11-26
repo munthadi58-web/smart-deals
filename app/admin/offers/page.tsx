@@ -35,7 +35,7 @@ export default async function OffersAdminPage({ searchParams }: { searchParams: 
     <div style={{maxWidth:1150,margin:"0 auto"}}>
       <header style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap"}}>
         <div><Link href="/admin" style={{color:"#087b52",textDecoration:"none",fontSize:13}}>← لوحة الإدارة</Link><h1 style={{fontSize:28,margin:"10px 0 4px"}}>إدارة العروض</h1><p style={{color:"#68748a",margin:0}}>أضف العروض واربطها بالمتاجر والفئات ثم راجعها قبل النشر.</p></div>
-        <div style={{display:"flex",gap:8}}><Link href="/admin" style={{padding:"10px 14px",borderRadius:9,background:"#fff",color:"#344256",textDecoration:"none"}}>المتاجر</Link><span style={{padding:"10px 14px",borderRadius:9,background:"#e8eeeb",color:"#617067"}}>الكوبونات · قريباً</span></div>
+        <div style={{display:"flex",gap:8}}><Link href="/admin/offers/sources" style={{padding:"10px 14px",borderRadius:9,background:"#e5f7ed",color:"#087b52",textDecoration:"none"}}>مصادر تلقائية</Link><Link href="/admin" style={{padding:"10px 14px",borderRadius:9,background:"#fff",color:"#344256",textDecoration:"none"}}>المتاجر</Link><span style={{padding:"10px 14px",borderRadius:9,background:"#e8eeeb",color:"#617067"}}>الكوبونات · قريباً</span></div>
       </header>
       {params.saved&&<p style={{background:"#e5f7ed",color:"#087b52",padding:12,borderRadius:10}}>تم حفظ العرض وإرساله إلى قائمة المراجعة.</p>}
       {params.updated&&<p style={{background:"#e5f7ed",color:"#087b52",padding:12,borderRadius:10}}>تم تحديث حالة العرض.</p>}
