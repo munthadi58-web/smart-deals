@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { createSupabaseBrowserClient } from "../lib/supabase-browser";
 import { Search, MapPin, ChevronDown, Tag, ShoppingBag, Smartphone, Home, Shirt, Plane, Sparkles, Clock3, ArrowUpLeft, Menu, Heart, SlidersHorizontal, Globe2, BadgePercent } from "lucide-react";
 
 type Deal = {
@@ -21,8 +21,8 @@ const deals: Deal[] = [
 
 const categories = [
   { name: "الكل", icon: Sparkles }, { name: "مواد غذائية", icon: ShoppingBag },
-  { name: "إلكترونيات", icon: Smartphone }, { name: "المنزل", icon: Home },
-  { name: "الأزياء", icon: Shirt }, { name: "السفر", icon: Plane }, { name: "خدمات", icon: Tag },
+  { name: "إلكترونيات", icon: Smartphone }, { name: "المنزل والمطبخ", icon: Home },
+  { name: "الأزياء", icon: Shirt }, { name: "السفر", icon: Plane }, { name: "خدمات واشتراكات", icon: Tag },
 ];
 
 export default function HomePage() {
@@ -38,7 +38,7 @@ export default function HomePage() {
     const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
     if (!url || !key) return;
 
-    const supabase = createClient(url, key);
+    const supabase = createSupabaseBrowserClient();
     let active = true;
 
     const loadPublishedOffers = async () => {
