@@ -26,7 +26,7 @@ export default async function FeedSourcesPage({searchParams}:{searchParams:Promi
     <div style={{maxWidth:1050,margin:"0 auto"}}>
       <Link href="/admin/offers" style={{color:"#087b52",textDecoration:"none"}}>← إدارة العروض</Link>
       <h1 style={{fontSize:28,margin:"12px 0 5px"}}>مصادر العروض التلقائية</h1>
-      <p style={{color:"#68748a"}}>أضف رابط XML أو RSS/Atom مصرحاً به من المتجر أو شبكة الشراكة. المنتجات المستوردة تحفظ بانتظار المراجعة ولا تنشر تلقائياً.</p>
+      <p style={{color:"#68748a"}}>أضف رابط CSV أو XML أو RSS/Atom مصرحاً به من المتجر أو شبكة الشراكة. تُقرأ أعمدة اسم المنتج والرابط والصورة والوصف والسعر حسب أسماء الأعمدة المتاحة. المنتجات المستوردة تحفظ بانتظار المراجعة ولا تنشر تلقائياً.</p>
       {params.saved&&<p style={{background:"#e5f7ed",padding:12,borderRadius:9}}>تم حفظ مصدر الخلاصة.</p>}
       {params.imported!==undefined&&<p style={{background:"#e5f7ed",padding:12,borderRadius:9}}>انتهى الاستيراد. عدد العروض الجديدة: {params.imported}.</p>}
       {params.error&&<p style={{background:"#fff0f0",color:"#b42318",padding:12,borderRadius:9}}>{params.error}</p>}
@@ -35,7 +35,7 @@ export default async function FeedSourcesPage({searchParams}:{searchParams:Promi
         {storeRows.length===0?<p>أضف متجراً نشطاً أولاً.</p>:<form action={createFeedSource} style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:12}}>
           <label style={label}>اسم المصدر<input name="name" required maxLength={120} placeholder="مثال: Amazon Affiliate Feed" style={field}/></label>
           <label style={label}>المتجر المرتبط<select name="store_id" required style={field}><option value="">اختر المتجر</option>{storeRows.map((s:any)=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
-          <label style={label}>صيغة الخلاصة<select name="feed_format" style={field}><option value="auto">تلقائي</option><option value="rss">RSS</option><option value="atom">Atom</option><option value="xml">XML / Product Feed</option></select></label>
+          <label style={label}>صيغة الخلاصة<select name="feed_format" style={field}><option value="auto">تلقائي</option><option value="rss">RSS</option><option value="atom">Atom</option><option value="xml">XML / Product Feed</option><option value="csv">CSV</option></select></label>
           <label style={{...label,gridColumn:"1 / -1"}}>رابط الخلاصة HTTPS<input name="feed_url" type="url" required placeholder="https://..." style={field}/></label>
           <button style={{padding:13,border:0,borderRadius:9,background:"#087b52",color:"#fff",fontWeight:700}}>حفظ المصدر</button>
         </form>}
