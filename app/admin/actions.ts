@@ -25,6 +25,10 @@ export async function createStore(formData: FormData) {
   const { data: country, error: countryError } = await supabase.from("countries").select("id").eq("code", "SA").single();
   if (countryError || !country) throw new Error("تعذر العثور على دولة السعودية في قاعدة البيانات.");
 
+  const { data: existingStore, error: duplicateCheckError } = await supabase.from("stores").select("id").eq("country_id", country.id).or(`name.ilike.${name},website_url.eq.${website || "__no_url__"}`).limit(1).maybeSingle();
+  if (duplicateCheckError) throw new Error("تعذر التحقق من وجود المتجر مسبقاً: " + duplicateCheckError.message);
+  if (existingStore) redirect("/admin?tab=stores&duplicate=1");
+
   const { error } = await supabase.from("stores").insert({
     country_id: country.id,
     name,
