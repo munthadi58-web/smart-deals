@@ -9,7 +9,7 @@ async function getAdminClient() {
   const { data: claims } = await supabase.auth.getClaims();
   if (!claims?.claims?.sub) redirect("/login");
   const { data: allowed, error } = await supabase.rpc("is_current_user_admin");
-  if (error || allowed !== true) throw new Error("غير مصرح بتنفيذ هذا الإجراء.");
+  if (error || allowed !== true) redirect("/admin?error=" + encodeURIComponent("الحساب غير مخوّل لتنفيذ هذا الإجراء."));
   return supabase;
 }
 
@@ -17,17 +17,25 @@ export async function createStore(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const website = String(formData.get("website_url") ?? "").trim();
   const sourceType = String(formData.get("source_type") ?? "manual");
-  if (name.length < 2 || name.length > 100) throw new Error("اسم المتجر يجب أن يكون بين حرفين و100 حرف.");
-  if (website && !/^https?:\/\//i.test(website)) throw new Error("رابط المتجر يجب أن يبدأ بـ https:// أو http://");
-  if (!["manual", "affiliate_api", "feed", "permitted_crawler"].includes(sourceType)) throw new Error("نوع المصدر غير صالح.");
+  if (name.length < 2 || name.length > 100) redirect("/admin?error=" + encodeURIComponent("اسم المتجر يجب أن يكون بين حرفين و100 حرف."));
+  if (website && !/^https?:\/\//i.test(website)) redirect("/admin?error=" + encodeURIComponent("رابط المتجر يجب أن يبدأ بـ https:// أو http://"));
+  if (!["manual", "affiliate_api", "feed", "permitted_crawler"].includes(sourceType)) redirect("/admin?error=" + encodeURIComponent("نوع المصدر غير صالح."));
 
   const supabase = await getAdminClient();
   const { data: country, error: countryError } = await supabase.from("countries").select("id").eq("code", "SA").single();
-  if (countryError || !country) throw new Error("تعذر العثور على دولة السعودية في قاعدة البيانات.");
+  if (countryError || !country) redirect("/admin?error=" + encodeURIComponent("تعذر العثور على دولة السعودية."));
 
-  const { data: existingStore, error: duplicateCheckError } = await supabase.from("stores").select("id").eq("country_id", country.id).or(`name.ilike.${name},website_url.eq.${website || "__no_url__"}`).limit(1).maybeSingle();
-  if (duplicateCheckError) throw new Error("تعذر التحقق من وجود المتجر مسبقاً: " + duplicateCheckError.message);
-  if (existingStore) redirect("/admin?tab=stores&duplicate=1");
+  // Compare normalized values in application code; avoid fragile PostgREST .or() filter parsing.
+  const { data: existingStores, error: lookupError } = await supabase
+    .from("stores").select("id,name,website_url").eq("country_id", country.id);
+  if (lookupError) redirect("/admin?error=" + encodeURIComponent("تعذر التحقق من تكرار المتجر: " + lookupError.message));
+  const normalizedName = name.toLocaleLowerCase("en").replace(/\s+/g, " ");
+  const normalizedWebsite = website.replace(/\/$/, "").toLocaleLowerCase("en");
+  const duplicate = (existingStores ?? []).some((store) =>
+    String(store.name).toLocaleLowerCase("en").replace(/\s+/g, " ") === normalizedName ||
+    (normalizedWebsite && String(store.website_url ?? "").replace(/\/$/, "").toLocaleLowerCase("en") === normalizedWebsite)
+  );
+  if (duplicate) redirect("/admin?duplicate=1");
 
   const { error } = await supabase.from("stores").insert({
     country_id: country.id,
@@ -36,18 +44,34 @@ export async function createStore(formData: FormData) {
     source_type: sourceType,
     is_active: true,
   });
-  if (error) throw new Error("تعذر إضافة المتجر: " + error.message);
+  if (error) redirect("/admin?error=" + encodeURIComponent("تعذر إضافة المتجر: " + error.message));
   revalidatePath("/admin");
-  redirect("/admin?tab=stores&saved=1");
+  redirect("/admin?saved=1");
 }
 
 export async function toggleStore(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const nextActive = String(formData.get("next_active") ?? "") === "true";
-  if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error("معرّف المتجر غير صالح.");
+  if (!/^[0-9a-f-]{36}$/i.test(id)) redirect("/admin?error=" + encodeURIComponent("معرّف المتجر غير صالح."));
   const supabase = await getAdminClient();
-  const { error } = await supabase.from("stores").update({ is_active: nextActive }).eq("id", id);
-  if (error) throw new Error("تعذر تحديث المتجر: " + error.message);
+  const { data, error } = await supabase.from("stores").update({ is_active: nextActive }).eq("id", id).select("id").maybeSingle();
+  if (error || !data) redirect("/admin?error=" + encodeURIComponent("تعذر تحديث المتجر: " + (error?.message ?? "لم يتم العثور على المتجر أو لا توجد صلاحية.")));
   revalidatePath("/admin");
-  redirect("/admin?tab=stores&updated=1");
+  redirect("/admin?updated=1");
+}
+
+export async function deleteStore(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  if (!/^[0-9a-f-]{36}$/i.test(id)) redirect("/admin?error=" + encodeURIComponent("معرّف المتجر غير صالح."));
+  const supabase = await getAdminClient();
+  const [{ count: offersCount, error: offersError }, { count: couponsCount, error: couponsError }] = await Promise.all([
+    supabase.from("offers").select("id", { count: "exact", head: true }).eq("store_id", id),
+    supabase.from("coupons").select("id", { count: "exact", head: true }).eq("store_id", id),
+  ]);
+  if (offersError || couponsError) redirect("/admin?error=" + encodeURIComponent("تعذر التحقق من ارتباطات المتجر قبل الحذف."));
+  if ((offersCount ?? 0) > 0 || (couponsCount ?? 0) > 0) redirect("/admin?deleteBlocked=1");
+  const { data, error } = await supabase.from("stores").delete().eq("id", id).select("id").maybeSingle();
+  if (error || !data) redirect("/admin?error=" + encodeURIComponent("تعذر حذف المتجر: " + (error?.message ?? "لم يتم العثور على المتجر.")));
+  revalidatePath("/admin");
+  redirect("/admin?deleted=1");
 }
