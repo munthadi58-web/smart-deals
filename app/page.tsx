@@ -10,15 +10,6 @@ type Deal = {
   accent: string; verified: boolean;
 };
 
-const deals: Deal[] = [
-  { id: 1, title: "سماعات لاسلكية — عزل ضوضاء", store: "متجر التقنية", category: "إلكترونيات", price: 219, oldPrice: 349, discount: 37, city: "كل السعودية", ends: "ينتهي قريباً", icon: "🎧", accent: "lavender", verified: false },
-  { id: 2, title: "طقم أواني مطبخ 10 قطع", store: "متجر المنزل", category: "المنزل", price: 159, oldPrice: 229, discount: 31, city: "الرياض", ends: "عرض محدود", icon: "🍳", accent: "peach", verified: false },
-  { id: 3, title: "حقيبة ظهر للاستخدام اليومي", store: "متجر الأزياء", category: "الأزياء", price: 89, oldPrice: 139, discount: 36, city: "كل السعودية", ends: "ينتهي اليوم", icon: "🎒", accent: "mint", verified: false },
-  { id: 4, title: "مجموعة عناية شخصية", store: "متجر الجمال", category: "الجمال", price: 74, oldPrice: 110, discount: 33, city: "جدة", ends: "عرض محدود", icon: "🧴", accent: "rose", verified: false },
-  { id: 5, title: "اشتراك منصة ترفيه — شهر", store: "خدمات رقمية", category: "خدمات", price: 19, oldPrice: 29, discount: 34, city: "كل السعودية", ends: "ينتهي قريباً", icon: "▶️", accent: "blue", verified: false },
-  { id: 6, title: "حقيبة سفر بعجلات", store: "متجر السفر", category: "السفر", price: 249, oldPrice: 399, discount: 38, city: "الدمام", ends: "عرض محدود", icon: "🧳", accent: "sand", verified: false },
-];
-
 const categories = [
   { name: "الكل", icon: Sparkles }, { name: "مواد غذائية", icon: ShoppingBag },
   { name: "إلكترونيات", icon: Smartphone }, { name: "المنزل والمطبخ", icon: Home },
@@ -33,7 +24,7 @@ export default function HomePage() {
   const [city, setCity] = useState("كل السعودية");
   const [availableCities, setAvailableCities] = useState<string[]>([]);
   const [saved, setSaved] = useState<(number | string)[]>([]);
-  const [visibleDeals, setVisibleDeals] = useState<Deal[]>(deals);
+  const [visibleDeals, setVisibleDeals] = useState<Deal[]>([]);
   const [isLive, setIsLive] = useState(false);
 
   useEffect(() => {
@@ -182,8 +173,8 @@ export default function HomePage() {
               <div className="dealInfo"><div className="storeName">{d.store}<span className="unverified">{isLive ? (d.verified ? "تم التحقق" : "عرض منشور") : "بيانات تجريبية"}</span></div><h3>{d.title}</h3><div className="priceRow"><b>{d.price.toFixed(2)} <small>ر.س</small></b><del>{d.oldPrice.toFixed(2)} ر.س</del></div><div className="dealFoot"><span><MapPin size={13}/>{d.city}</span><span><Clock3 size={13}/>{d.ends}</span></div><button className="dealButton" onClick={()=>alert("هذا عرض تجريبي للتصميم فقط. لن يتم تحويلك إلى متجر قبل ربط مصدر حقيقي.")}>تفاصيل العرض <ArrowUpLeft size={16}/></button></div>
             </article>)}
           </div>
-          {filtered.length===0&&<div className="empty">لا توجد نتائج مطابقة. جرّب تغيير كلمة البحث أو التصنيف.</div>}
-          {!isLive ? <p className="demoNotice">تنبيه: البطاقات المعروضة بيانات تجريبية لتوضيح التصميم فقط، وليست عروضاً حقيقية أو أسعاراً حالية.</p> : <p className="demoNotice">تعرض هذه الصفحة العروض المنشورة في قاعدة البيانات فقط. تحقق من السعر ومصدر العرض قبل الشراء.</p>}
+          {filtered.length===0&&<div className="empty">{!isLive ? "نعمل على تجهيز العروض الحقيقية لهذه المنطقة. عُد قريباً." : query.trim() || category!=="الكل" || city!=="كل السعودية" ? "لا توجد نتائج مطابقة. جرّب تغيير كلمة البحث أو التصنيف." : "لا توجد عروض منشورة حالياً. تابعنا لاكتشاف العروض الجديدة."}</div>}
+          <p className="demoNotice">تعرض هذه الصفحة العروض المنشورة في قاعدة البيانات فقط. لا نعرض أسعاراً تجريبية على أنها عروض حقيقية.</p>
         </div>
       </section>
 
