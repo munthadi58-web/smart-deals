@@ -1,0 +1,112 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { Search, MapPin, ChevronDown, Tag, ShoppingBag, Smartphone, Home, Shirt, Plane, Sparkles, Clock3, ArrowUpLeft, Menu, Heart, SlidersHorizontal, Globe2, BadgePercent } from "lucide-react";
+
+type Deal = {
+  id: number; title: string; store: string; category: string; price: number;
+  oldPrice: number; discount: number; city: string; ends: string; icon: string;
+  accent: string; verified: boolean;
+};
+
+const deals: Deal[] = [
+  { id: 1, title: "سماعات لاسلكية — عزل ضوضاء", store: "متجر التقنية", category: "إلكترونيات", price: 219, oldPrice: 349, discount: 37, city: "كل السعودية", ends: "ينتهي قريباً", icon: "🎧", accent: "lavender", verified: false },
+  { id: 2, title: "طقم أواني مطبخ 10 قطع", store: "متجر المنزل", category: "المنزل", price: 159, oldPrice: 229, discount: 31, city: "الرياض", ends: "عرض محدود", icon: "🍳", accent: "peach", verified: false },
+  { id: 3, title: "حقيبة ظهر للاستخدام اليومي", store: "متجر الأزياء", category: "الأزياء", price: 89, oldPrice: 139, discount: 36, city: "كل السعودية", ends: "ينتهي اليوم", icon: "🎒", accent: "mint", verified: false },
+  { id: 4, title: "مجموعة عناية شخصية", store: "متجر الجمال", category: "الجمال", price: 74, oldPrice: 110, discount: 33, city: "جدة", ends: "عرض محدود", icon: "🧴", accent: "rose", verified: false },
+  { id: 5, title: "اشتراك منصة ترفيه — شهر", store: "خدمات رقمية", category: "خدمات", price: 19, oldPrice: 29, discount: 34, city: "كل السعودية", ends: "ينتهي قريباً", icon: "▶️", accent: "blue", verified: false },
+  { id: 6, title: "حقيبة سفر بعجلات", store: "متجر السفر", category: "السفر", price: 249, oldPrice: 399, discount: 38, city: "الدمام", ends: "عرض محدود", icon: "🧳", accent: "sand", verified: false },
+];
+
+const categories = [
+  { name: "الكل", icon: Sparkles }, { name: "مواد غذائية", icon: ShoppingBag },
+  { name: "إلكترونيات", icon: Smartphone }, { name: "المنزل", icon: Home },
+  { name: "الأزياء", icon: Shirt }, { name: "السفر", icon: Plane }, { name: "خدمات", icon: Tag },
+];
+
+export default function HomePage() {
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("الكل");
+  const [city, setCity] = useState("كل السعودية");
+  const [saved, setSaved] = useState<number[]>([]);
+  const filtered = useMemo(() => deals.filter(d =>
+    (category === "الكل" || d.category === category) &&
+    (city === "كل السعودية" || d.city === city || d.city === "كل السعودية") &&
+    `${d.title} ${d.store} ${d.category}`.includes(query.trim())
+  ), [query, category, city]);
+
+  return (
+    <main>
+      <div className="topbar">
+        <div className="container topbarInner">
+          <span><Sparkles size={14}/> وفر بذكاء، واشترِ بثقة</span>
+          <div className="topLinks"><span><Globe2 size={14}/> السعودية · SAR</span><span>العربية <ChevronDown size={13}/></span></div>
+        </div>
+      </div>
+      <header className="header">
+        <div className="container nav">
+          <button className="iconButton mobileMenu" aria-label="القائمة"><Menu/></button>
+          <a className="brand" href="#"><span className="brandMark"><Tag size={22}/></span><span>Smart<span>Deals</span><small>FIND MORE. PAY LESS.</small></span></a>
+          <nav className="mainNav"><a className="active" href="#">الرئيسية</a><a href="#deals">كل العروض</a><a href="#categories">التصنيفات</a><a href="#coupons">أكواد الخصم</a></nav>
+          <div className="navActions"><button className="cityButton"><MapPin size={16}/> {city}<ChevronDown size={14}/></button><button className="iconButton" aria-label="المفضلة"><Heart/></button></div>
+        </div>
+      </header>
+
+      <section className="hero">
+        <div className="heroGlow one"/><div className="heroGlow two"/>
+        <div className="container heroContent">
+          <div className="heroCopy">
+            <div className="eyebrow"><span className="pulse"/> دليلك الذكي للتوفير في السعودية</div>
+            <h1>كل العروض في مكان واحد.<br/><em>والتوفير يبدأ منك.</em></h1>
+            <p>اكتشف التخفيضات، قارن الأسعار، واستخدم أكواد الخصم — من متاجر متعددة وبكل سهولة.</p>
+            <div className="searchBox">
+              <Search size={21}/>
+              <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="ابحث عن منتج، متجر، أو كود خصم..." aria-label="ابحث عن العروض"/>
+              <button onClick={()=>document.getElementById("deals")?.scrollIntoView({behavior:"smooth"})}>ابحث الآن <ArrowUpLeft size={17}/></button>
+            </div>
+            <div className="heroMeta"><span><BadgePercent size={15}/> عروض من مصادر متعددة</span><span><Clock3 size={15}/> تواريخ صلاحية واضحة</span><span><Heart size={15}/> احفظ ما يعجبك</span></div>
+          </div>
+          <div className="heroArt">
+            <div className="heroOrb"><span className="orbTag">%</span><div className="orbText">SMART<br/>SAVING</div></div>
+            <div className="floatCard floatOne"><span className="miniIcon">🛍️</span><div><b>فرص توفير أكثر</b><small>اكتشفها في مكان واحد</small></div></div>
+            <div className="floatCard floatTwo"><span className="discountBubble">%</span><div><b>قارن قبل الشراء</b><small>قرار شراء أذكى</small></div></div>
+            <div className="spark s1">✦</div><div className="spark s2">✧</div><div className="spark s3">✦</div>
+          </div>
+        </div>
+      </section>
+
+      <section className="container trustStrip">
+        <div><span className="trustIcon"><Globe2/></span><span><b>السعودية أولاً</b><small>مصمم للسوق المحلي</small></span></div>
+        <div><span className="trustIcon"><SlidersHorizontal/></span><span><b>بحث وفلاتر سهلة</b><small>اعثر على ما يناسبك</small></span></div>
+        <div><span className="trustIcon"><BadgePercent/></span><span><b>عروض وكوبونات</b><small>التوفير في مكان واحد</small></span></div>
+        <div><span className="trustIcon"><Clock3/></span><span><b>وضوح الصلاحية</b><small>تاريخ تحديث ومصدر العرض</small></span></div>
+      </section>
+
+      <section className="container section" id="categories">
+        <div className="sectionHead"><div><span className="kicker">تسوق حسب اهتمامك</span><h2>اكتشف الأقسام</h2></div><a className="textLink" href="#deals">جميع الأقسام <ArrowUpLeft size={16}/></a></div>
+        <div className="categoryGrid">
+          {categories.map(({name,icon:Icon})=><button key={name} onClick={()=>{setCategory(name);document.getElementById("deals")?.scrollIntoView({behavior:"smooth"});}} className={`categoryCard ${category===name?"selected":""}`}><span className="categoryIcon"><Icon size={23}/></span><b>{name}</b><small>{name==="الكل"?"كل الفرص": "تصفح العروض"}</small></button>)}
+        </div>
+      </section>
+
+      <section className="dealsSection" id="deals">
+        <div className="container section">
+          <div className="sectionHead"><div><span className="kicker">اختيارات تستحق نظرة</span><h2>أحدث العروض</h2><p className="sectionDesc">تصفح العروض حسب التصنيف والمدينة.</p></div><div className="filters"><select value={city} onChange={e=>setCity(e.target.value)} aria-label="اختر المدينة"><option>كل السعودية</option><option>الرياض</option><option>جدة</option><option>الدمام</option></select><button className="filterButton"><SlidersHorizontal size={16}/> تصفية</button></div></div>
+          <div className="activeFilters">{category!=="الكل"&&<button onClick={()=>setCategory("الكل")}>{category} ×</button>}{query&&<button onClick={()=>setQuery("")}>بحث: {query} ×</button>}</div>
+          <div className="dealGrid">
+            {filtered.map(d=><article className="dealCard" key={d.id}>
+              <div className={`dealImage ${d.accent}`}><span className="discountLabel">خصم {d.discount}%</span><button className={`saveButton ${saved.includes(d.id)?"saved":""}`} onClick={()=>setSaved(s=>s.includes(d.id)?s.filter(x=>x!==d.id):[...s,d.id])} aria-label="حفظ العرض"><Heart size={18} fill={saved.includes(d.id)?"currentColor":"none"}/></button><span className="productEmoji">{d.icon}</span></div>
+              <div className="dealInfo"><div className="storeName">{d.store}<span className="unverified">بيانات تجريبية</span></div><h3>{d.title}</h3><div className="priceRow"><b>{d.price.toFixed(2)} <small>ر.س</small></b><del>{d.oldPrice.toFixed(2)} ر.س</del></div><div className="dealFoot"><span><MapPin size={13}/>{d.city}</span><span><Clock3 size={13}/>{d.ends}</span></div><button className="dealButton" onClick={()=>alert("هذا عرض تجريبي للتصميم فقط. لن يتم تحويلك إلى متجر قبل ربط مصدر حقيقي.")}>تفاصيل العرض <ArrowUpLeft size={16}/></button></div>
+            </article>)}
+          </div>
+          {filtered.length===0&&<div className="empty">لا توجد نتائج مطابقة. جرّب تغيير كلمة البحث أو التصنيف.</div>}
+          <p className="demoNotice">تنبيه: البطاقات المعروضة بيانات تجريبية لتوضيح التصميم فقط، وليست عروضاً حقيقية أو أسعاراً حالية.</p>
+        </div>
+      </section>
+
+      <section className="container couponBanner" id="coupons"><div className="couponSymbol"><Tag size={34}/></div><div><span className="kicker">قريباً في Smart Deals</span><h2>كود خصمك القادم في مكان واحد</h2><p>نجمع أكواد الخصم ونوضح شروطها وتاريخ صلاحيتها بعد التحقق منها.</p></div><span className="couponPill">COUPONS <b>%</b></span></section>
+
+      <footer><div className="container footerInner"><a className="brand footerBrand" href="#"><span className="brandMark"><Tag size={20}/></span><span>Smart<span>Deals</span><small>FIND MORE. PAY LESS.</small></span></a><p>منصة لاكتشاف العروض والتوفير بذكاء.</p><span>© 2026 Smart Deals. جميع الحقوق محفوظة.</span></div></footer>
+    </main>
+  );
+}
